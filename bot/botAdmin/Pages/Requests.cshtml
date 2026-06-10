@@ -1,0 +1,109 @@
+﻿@page
+@using Microsoft.Data.Sqlite
+@using System.IO
+@{
+    string dbPath = @"C:\Users\Professionals\Desktop\Практика\bot\botAdmin\teabot.db";
+
+    var requests = new List<dynamic>();
+
+    using (var connection = new SqliteConnection($"Data Source={dbPath}"))
+    {
+        connection.Open();
+        var cmd = new SqliteCommand("SELECT Id, VkUserId, RequestText, Status, CreatedAt FROM ManagerRequests ORDER BY CreatedAt DESC", connection);
+        var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            requests.Add(new
+            {
+                Id = reader.GetInt64(0),
+                VkUserId = reader.GetInt64(1),
+                Text = reader.GetString(2),
+                Status = reader.GetString(3),
+                Date = reader.GetDateTime(4)
+            });
+        }
+    }
+}
+
+<style>
+    body {
+        background-color: #F2DDCC;
+        font-family: 'Segoe UI', sans-serif;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #85544D;
+    }
+
+    .card {
+        background-color: #F1C7A7;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #B1B6B2;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #F2DDCC;
+    }
+
+    th {
+        background-color: #B1B6B2;
+        color: white;
+        padding: 12px;
+        text-align: left;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #B1B6B2;
+    }
+
+    .status-new {
+        color: #85544D;
+        font-weight: bold;
+    }
+
+    .status-closed {
+        color: #B1B6B2;
+    }
+
+    a {
+        color: #85544D;
+    }
+</style>
+
+<div class="card">
+    <h1>📋 Заявки менеджеру</h1>
+
+    @if (requests.Count == 0)
+    {
+        <p>✨ Заявок пока нет</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr><th>ID</th><th>VK ID</th><th>Текст</th><th>Статус</th><th>Дата</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var r in requests)
+                {
+                    <tr>
+                        <td>@r.Id</td>
+                        <td>@r.VkUserId</td>
+                        <td>@r.Text</td>
+                        <td class="status-@r.Status">@(r.Status == "new" ? "🆕 Новая" : "✅ Закрыта")</td>
+                        <td>@r.Date.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div>
+    <a href="/">← Назад к пользователям</a>
+</div>

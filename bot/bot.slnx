@@ -1,3 +1,12 @@
 <Solution>
-  <Project Path="bot/bot.csproj" Id="3ada7b02-8841-443f-a3e9-6841f08e130e" />
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="bot/bot.csproj" Id="3ada7b02-8841-443f-a3e9-6841f08e130e">
+    <Platform Solution="Debug|x64" Project="x64" />
+  </Project>
+  <Project Path="botAdmin/botAdmin.csproj" Id="34f6672d-b229-4221-ac12-2f649f4a5308">
+    <Platform Solution="Debug|x64" Project="x64" />
+  </Project>
 </Solution>

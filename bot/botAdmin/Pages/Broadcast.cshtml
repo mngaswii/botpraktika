@@ -1,0 +1,148 @@
+﻿@page
+@using Microsoft.Data.Sqlite
+@{
+    string resultMessage = "";
+    bool isSent = false;
+    int sentCount = 0;
+
+    if (Request.Method == "POST")
+    {
+        string text = Request.Form["text"];
+        string selectedLang = Request.Form["language"];
+
+        // Путь к базе данных (ищем в папке с ботом)
+        string dbPath = System.IO.Directory.GetCurrentDirectory() + "\\teabot.db";
+
+        try
+        {
+            using (var connection = new SqliteConnection("Data Source=" + dbPath))
+            {
+                connection.Open();
+
+                string sql = "";
+                if (selectedLang == "все")
+                {
+                    sql = "SELECT VkUserId FROM Users";
+                }
+                else
+                {
+                    sql = "SELECT VkUserId FROM Users WHERE Language = '" + selectedLang + "'";
+                }
+
+                using (var cmd = new SqliteCommand(sql, connection))
+                {
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        sentCount++;
+                    }
+                }
+            }
+            resultMessage = "✅ Рассылка подготовлена для " + sentCount + " пользователей, выбравших " + selectedLang + " язык.";
+            isSent = true;
+        }
+        catch (Exception ex)
+        {
+            resultMessage = "❌ Ошибка: " + ex.Message;
+            isSent = true;
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Рассылка TEA</title>
+    <style>
+            body {
+                background-color: #F2DDCC;
+                font-family: 'Segoe UI', sans-serif;
+                padding: 20px;
+            }
+
+            h1 {
+                color: #85544D;
+            }
+
+            .card {
+                background-color: #F1C7A7;
+                padding: 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+            }
+
+            label {
+                display: block;
+                margin-top: 15px;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #85544D;
+            }
+
+            select, textarea {
+                background-color: #F2DDCC;
+                border: 1px solid #B1B6B2;
+                border-radius: 8px;
+                padding: 8px;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            button {
+                background-color: #85544D;
+                color: white;
+                padding: 10px 25px;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                margin-top: 20px;
+            }
+
+            .success {
+                background-color: #B1B6B2;
+                color: white;
+                padding: 10px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+
+            a {
+                color: #85544D;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>📢 Рассылка</h1>
+
+        @if (isSent)
+        {
+            <div class="success">@resultMessage</div>
+        }
+
+        <form method="post">
+            <div>
+                <label>🌍 Язык:</label>
+                <select name="language">
+                    <option value="английский">🇬🇧 Английский</option>
+                    <option value="китайский">🇨🇳 Китайский</option>
+                    <option value="японский">🇯🇵 Японский</option>
+                    <option value="корейский">🇰🇷 Корейский</option>
+                    <option value="все">🌐 Все</option>
+                </select>
+            </div>
+
+            <div>
+                <label>💬 Текст:</label>
+                <textarea name="text" rows="5" cols="40"></textarea>
+            </div>
+
+            <button type="submit">🚀 Отправить</button>
+        </form>
+    </div>
+
+    <a href="/">← Назад</a>
+
+</body>
+</html>

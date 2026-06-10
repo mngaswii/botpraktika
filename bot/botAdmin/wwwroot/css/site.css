@@ -1,0 +1,125 @@
+﻿ /* TEA стили */
+body {
+    background-color: #F2DDCC; /* Almond */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Шапка сайта */
+.navbar {
+    background-color: #F1C7A7; /* Desert Sand */
+    padding: 15px 20px;
+    border-bottom: 3px solid #B1B6B2; /* Ash Blue */
+}
+
+.navbar-brand {
+    color: #85544D !important; /* Terra Rosa */
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Карточки и контейнеры */
+.card {
+    background-color: #F1C7A7; /* Desert Sand */
+    border: 1px solid #B1B6B2; /* Ash Blue */
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Таблицы */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #F2DDCC;
+}
+
+th {
+    background-color: #B1B6B2; /* Ash Blue */
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid #B1B6B2;
+}
+
+/* Кнопки */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background-color: #85544D; /* Terra Rosa */
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: #6B3E38;
+    }
+
+.btn-success {
+    background-color: #B1B6B2;
+    color: white;
+}
+
+/* Ссылки */
+a {
+    color: #85544D;
+    text-decoration: none;
+}
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+/* Заголовки */
+h1, h2, h3 {
+    color: #85544D;
+}
+
+/* Формы */
+input, select, textarea {
+    background-color: #F2DDCC;
+    border: 1px solid #B1B6B2;
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+    max-width: 300px;
+}
+
+button {
+    background-color: #85544D;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    cursor: pointer;
+}
+
+    button:hover {
+        background-color: #6B3E38;
+    }
+
+/* Сайдбар или меню */
+.sidebar {
+    background-color: #F1C7A7;
+    border-right: 1px solid #B1B6B2;
+    padding: 20px;
+}
+
+/* Карточка пользователя */
+.user-card {
+    background-color: #F1C7A7;
+    border-left: 5px solid #85544D;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 8px;
+}
