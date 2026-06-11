@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Net;
 using System.Text;
 using System.Collections.Generic;
@@ -50,13 +51,7 @@ namespace TeaBotSimple
                                     Console.WriteLine($"{userId}: {text}");
 
                                     string answer = GetAnswer(userId, text);
-
-                                    api.Call("messages.send", new VkParameters
-                                    {
-                                        { "peer_id", userId },
-                                        { "message", answer },
-                                        { "random_id", rnd.Next() }
-                                    });
+                                    SendMessageWithKeyboard(api, userId, answer, rnd);
                                 }
                             }
                         }
@@ -68,6 +63,36 @@ namespace TeaBotSimple
                     System.Threading.Thread.Sleep(5000);
                 }
             }
+        }
+
+        static void SendMessageWithKeyboard(VkApi api, long userId, string message, Random rnd)
+        {
+            string keyboard = @"
+{
+""one_time"": false,
+""buttons"": [
+[
+{ ""action"": { ""type"": ""text"", ""label"": ""📚 Выбрать язык"" }, ""color"": ""primary"" },
+{ ""action"": { ""type"": ""text"", ""label"": ""📝 Тест уровня"" }, ""color"": ""primary"" }
+],
+[
+{ ""action"": { ""type"": ""text"", ""label"": ""🎓 Подобрать обучение"" }, ""color"": ""secondary"" },
+{ ""action"": { ""type"": ""text"", ""label"": ""👩‍💼 Позвать человека"" }, ""color"": ""secondary"" }
+],
+[
+{ ""action"": { ""type"": ""text"", ""label"": ""🎁 Акции и сертификаты"" }, ""color"": ""positive"" }
+]
+]
+}";
+
+            var parameters = new VkParameters
+{
+{ "peer_id", userId },
+{ "message", message },
+{ "random_id", rnd.Next() },
+{ "keyboard", keyboard }
+};
+            api.Call("messages.send", parameters);
         }
 
         static string GetAnswer(long userId, string text)
@@ -117,7 +142,7 @@ namespace TeaBotSimple
                 else if (text == "в" || text == "v" || text == "c") level = "продвинутый";
                 else level = text;
 
-                answer = $"✅ Спасибо! {level} уровень сохранён.\n\nЧто дальше?\n• 3 — подобрать обучение\n• МЕНЮ — вернуться\n• ПОМОЩЬ — менеджер";
+                answer = $"✅ Спасибо! {level} уровень сохранён.\n\nЧто дальше?\n• Нажмите 🎓 Подобрать обучение\n• Или 📚 Меню";
                 userState[userId] = "menu";
             }
             else if (state == "waiting_test_question1")
@@ -142,30 +167,33 @@ namespace TeaBotSimple
             }
             else if (state == "waiting_test_result")
             {
-                answer = "🎉 ТЕСТ ЗАВЕРШЁН! 🎉\n\n⭐ Рекомендация: групповые занятия 2 раза в неделю\n⭐ Уровень: средний (B1)\n⭐ Следующий шаг: пробный урок бесплатно\n\nНапишите МЕНЕДЖЕР для записи или МЕНЮ";
+                answer = "🎉 ТЕСТ ЗАВЕРШЁН! 🎉\n\n⭐ Рекомендация: групповые занятия 2 раза в неделю\n⭐ Уровень: средний (B1)\n⭐ Следующий шаг: пробный урок бесплатно\n\nНажмите 👩‍💼 Позвать человека для записи";
                 userState[userId] = "menu";
             }
             else if (state == "waiting_selection")
             {
-                answer = "🎓 Спасибо! Мы подобрали для вас обучение.\n\nСпециалист свяжется с вами в ближайшее время.\n\nНапишите МЕНЮ для возврата";
+                answer = "🎓 Спасибо! Мы подобрали для вас обучение.\n\nСпециалист свяжется с вами в ближайшее время.\n\nНажмите 📚 Меню для возврата";
                 userState[userId] = "menu";
             }
             else
             {
-                if (text == "меню" || text == "привет" || text == "start" || text == "начать")
+                if (text == "меню" || text == "привет" || text == "start" || text == "начать" ||
+                text == "📚 выбрать язык" || text == "📚" ||
+                text == "📝 тест уровня" || text == "📝" ||
+                text == "🎓 подобрать обучение" || text == "🎓" ||
+                text == "👩‍💼 позвать человека" || text == "👩‍💼" ||
+                text == "🎁 акции и сертификаты" || text == "🎁")
                 {
                     answer = "🍵 ДОБРО ПОЖАЛОВАТЬ В TEA!\n\n" +
-                             "━━━━━━━━━━━━━━━━━━━━━━\n" +
-                             "1️⃣ Выбрать язык\n" +
-                             "2️⃣ Пройти тест уровня\n" +
-                             "3️⃣ Подобрать обучение\n" +
-                             "4️⃣ Позвать человека\n" +
-                             "5️⃣ Акции и сертификаты\n" +
-                             "━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-                             "Напишите номер 1, 2, 3, 4 или 5";
+                    "👇 Нажмите на кнопку ниже, чтобы выбрать действие:\n\n" +
+                    "📚 Выбрать язык\n" +
+                    "📝 Пройти тест уровня\n" +
+                    "🎓 Подобрать обучение\n" +
+                    "👩‍💼 Позвать человека\n" +
+                    "🎁 Акции и сертификаты";
                     userState[userId] = "menu";
                 }
-                else if (text == "1")
+                else if (text == "1" || text.Contains("выбрать язык"))
                 {
                     answer = "📚 ДОСТУПНЫЕ ЯЗЫКИ:\n\n• Английский 🇬🇧\n• Китайский 🇨🇳\n• Японский 🇯🇵\n• Корейский 🇰🇷\n\nНапишите название языка";
                     userState[userId] = "waiting_language";
@@ -175,14 +203,14 @@ namespace TeaBotSimple
                     answer = "📝 ТЕСТ УРОВНЯ ЯЗЫКА\n\nВопрос 1 из 5:\n\nКак давно вы изучаете язык?\n\nА) Меньше года\nБ) 1-3 года\nВ) Более 3 лет\n\nНапишите А, Б или В";
                     userState[userId] = "waiting_test_question1";
                 }
-                else if (text == "3" || text.Contains("подобрать"))
+                else if (text == "3" || text.Contains("подобрать") || text.Contains("обучение"))
                 {
                     answer = "🎓 ПОДБОР ОБУЧЕНИЯ\n\n" +
-                             "Ответьте на вопросы:\n" +
-                             "1. Ваш возраст?\n" +
-                             "2. Цель изучения?\n" +
-                             "3. Удобное время?\n\n" +
-                             "Напишите через запятую, например: 25, работа, вечер";
+                    "Ответьте на вопросы:\n" +
+                    "1. Ваш возраст?\n" +
+                    "2. Цель изучения?\n" +
+                    "3. Удобное время?\n\n" +
+                    "Напишите через запятую, например: 25, работа, вечер";
                     userState[userId] = "waiting_selection";
                 }
                 else if (text == "4" || text.Contains("помощь") || text.Contains("менеджер") || text.Contains("позвать"))
@@ -191,11 +219,11 @@ namespace TeaBotSimple
                 }
                 else if (text == "5" || text.Contains("акции"))
                 {
-                    answer = "🎁 АКЦИИ!\n\n🔥 Скидка 20% на первый месяц\n🎫 Подарочные сертификаты\n👥 Приведи друга — месяц бесплатно\n\nНапишите МЕНЕДЖЕР";
+                    answer = "🎁 АКЦИИ!\n\n🔥 Скидка 20% на первый месяц\n🎫 Подарочные сертификаты\n👥 Приведи друга — месяц бесплатно\n\nНажмите 👩‍💼 Позвать человека для подробностей";
                 }
                 else
                 {
-                    answer = "🍵 Напишите МЕНЮ, чтобы увидеть команды.\n\nДоступно: МЕНЮ, 1, 2, 3, 4, 5";
+                    answer = "🍵 Нажмите на кнопку меню, чтобы начать!\n\n📚 Выбрать язык\n📝 Тест\n🎓 Обучение\n👩‍💼 Помощь\n🎁 Акции";
                 }
             }
 
