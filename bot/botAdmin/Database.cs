@@ -1,7 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
 using System;
 
-namespace TeaBotAdmin
+namespace botAdmin
 {
     public static class Database
     {
@@ -19,7 +20,6 @@ namespace TeaBotAdmin
                         Level TEXT,
                         RequestText TEXT
                     );
-                    
                     CREATE TABLE IF NOT EXISTS ManagerRequests (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         VkUserId INTEGER,
@@ -32,63 +32,34 @@ namespace TeaBotAdmin
             }
         }
 
-        public static void GetOrCreateUser(long vkUserId)
+        public static List<User> GetUsers()
         {
+            var users = new List<User>();
             using (var connection = new SqliteConnection(connectionString))
             {
                 connection.Open();
-                string sql = "INSERT OR IGNORE INTO Users (VkUserId) VALUES (@id)";
-                using (var cmd = new SqliteCommand(sql, connection))
+                var cmd = new SqliteCommand("SELECT VkUserId, Language, Level, RequestText FROM Users", connection);
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    cmd.Parameters.AddWithValue("@id", vkUserId);
-                    cmd.ExecuteNonQuery();
+                    users.Add(new User
+                    {
+                        VkUserId = reader.GetInt64(0),
+                        Language = reader.IsDBNull(1) ? "" : reader.GetString(1),
+                        Level = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                        Request = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                    });
                 }
             }
+            return users;
         }
+    }
 
-        public static void SaveLanguage(long vkUserId, string language)
-        {
-            using (var connection = new SqliteConnection(connectionString))
-            {
-                connection.Open();
-                string sql = "UPDATE Users SET Language = @lang WHERE VkUserId = @id";
-                using (var cmd = new SqliteCommand(sql, connection))
-                {
-                    cmd.Parameters.AddWithValue("@id", vkUserId);
-                    cmd.Parameters.AddWithValue("@lang", language);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public static void SaveLevel(long vkUserId, string level)
-        {
-            using (var connection = new SqliteConnection(connectionString))
-            {
-                connection.Open();
-                string sql = "UPDATE Users SET Level = @lvl WHERE VkUserId = @id";
-                using (var cmd = new SqliteCommand(sql, connection))
-                {
-                    cmd.Parameters.AddWithValue("@id", vkUserId);
-                    cmd.Parameters.AddWithValue("@lvl", level);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public static void SaveRequest(long vkUserId, string request)
-        {
-            using (var connection = new SqliteConnection(connectionString))
-            {
-                connection.Open();
-                string sql = "UPDATE Users SET RequestText = @req WHERE VkUserId = @id";
-                using (var cmd = new SqliteCommand(sql, connection))
-                {
-                    cmd.Parameters.AddWithValue("@id", vkUserId);
-                    cmd.Parameters.AddWithValue("@req", request);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
+    public class User
+    {
+        public long VkUserId { get; set; }
+        public string Language { get; set; } = "";
+        public string Level { get; set; } = "";
+        public string Request { get; set; } = "";
     }
 }

@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Новый профиль",
+    "Projects": [
+      {
+        "Path": "bot\\bot.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "botAdmin\\botAdmin.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

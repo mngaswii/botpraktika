@@ -1,7 +1,15 @@
+using Microsoft.Data.Sqlite;
+using System.IO;
+using botAdmin;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+// Инициализация базы данных
+Database.Initialize();
 
 var app = builder.Build();
 

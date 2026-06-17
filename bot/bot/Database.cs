@@ -1,11 +1,12 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
 
+
 namespace TeaBotSimple
 {
     public static class Database
     {
-        private static string connectionString = "Data Source=teabot.db";
+        private static string connectionString = "Data Source=C:\\Users\\Professionals\\Desktop\\Практика\\bot\\botAdmin\\teabot.db";
 
         public static void Initialize()
         {
