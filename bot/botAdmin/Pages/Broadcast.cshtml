@@ -1,148 +1,149 @@
 ﻿@page
-@using Microsoft.Data.Sqlite
+@using TeaBotSimple
+@using System.Linq
 @{
     string resultMessage = "";
     bool isSent = false;
     int sentCount = 0;
+    string selectedPlatform = "all";
 
     if (Request.Method == "POST")
     {
         string text = Request.Form["text"];
-        string selectedLang = Request.Form["language"];
+        selectedPlatform = Request.Form["platform"];
+        string lang = Request.Form["language"];
 
-        // Путь к базе данных (ищем в папке с ботом)
-        string dbPath = System.IO.Directory.GetCurrentDirectory() + "\\teabot.db";
-
-        try
+        // Получаем пользователей с учётом платформы
+        List<User> users = new List<User>();
+        if (selectedPlatform == "all")
         {
-            using (var connection = new SqliteConnection("Data Source=" + dbPath))
-            {
-                connection.Open();
-
-                string sql = "";
-                if (selectedLang == "все")
-                {
-                    sql = "SELECT VkUserId FROM Users";
-                }
-                else
-                {
-                    sql = "SELECT VkUserId FROM Users WHERE Language = '" + selectedLang + "'";
-                }
-
-                using (var cmd = new SqliteCommand(sql, connection))
-                {
-                    var reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        sentCount++;
-                    }
-                }
-            }
-            resultMessage = "✅ Рассылка подготовлена для " + sentCount + " пользователей, выбравших " + selectedLang + " язык.";
-            isSent = true;
+            users = Database.GetUsers(null);
         }
-        catch (Exception ex)
+        else
         {
-            resultMessage = "❌ Ошибка: " + ex.Message;
-            isSent = true;
+            users = Database.GetUsers(selectedPlatform);
         }
+
+        // Фильтруем по языку
+        if (!string.IsNullOrEmpty(lang) && lang != "all")
+        {
+            users = users.Where(u => u.Language.ToLower() == lang.ToLower()).ToList();
+        }
+
+        sentCount = users.Count;
+
+        resultMessage = $"✅ Рассылка подготовлена для {sentCount} пользователей";
+        if (selectedPlatform != "all") resultMessage += $" на платформе {selectedPlatform}";
+        if (lang != "all") resultMessage += $", язык: {lang}";
+        isSent = true;
     }
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Рассылка TEA</title>
-    <style>
-            body {
-                background-color: #F2DDCC;
-                font-family: 'Segoe UI', sans-serif;
-                padding: 20px;
-            }
+<style>
+    body {
+        background-color: #F2DDCC;
+        font-family: 'Segoe UI', sans-serif;
+        padding: 20px;
+    }
 
-            h1 {
-                color: #85544D;
-            }
+    h1 {
+        color: #85544D;
+    }
 
-            .card {
-                background-color: #F1C7A7;
-                padding: 20px;
-                border-radius: 12px;
-                margin-bottom: 20px;
-            }
+    .card {
+        background-color: #F1C7A7;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #B1B6B2;
+        margin-bottom: 20px;
+    }
 
-            label {
-                display: block;
-                margin-top: 15px;
-                margin-bottom: 5px;
-                font-weight: bold;
-                color: #85544D;
-            }
+    label {
+        display: block;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #85544D;
+    }
 
-            select, textarea {
-                background-color: #F2DDCC;
-                border: 1px solid #B1B6B2;
-                border-radius: 8px;
-                padding: 8px;
-                width: 100%;
-                max-width: 300px;
-            }
+    select, textarea {
+        background-color: #F2DDCC;
+        border: 1px solid #B1B6B2;
+        border-radius: 8px;
+        padding: 8px 12px;
+        width: 100%;
+        max-width: 300px;
+    }
 
-            button {
-                background-color: #85544D;
-                color: white;
-                padding: 10px 25px;
-                border: none;
-                border-radius: 25px;
-                cursor: pointer;
-                margin-top: 20px;
-            }
+    textarea {
+        max-width: 500px;
+    }
 
-            .success {
-                background-color: #B1B6B2;
-                color: white;
-                padding: 10px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-            }
+    .btn {
+        background-color: #85544D;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
 
-            a {
-                color: #85544D;
-            }
-    </style>
-</head>
-<body>
-
-    <div class="card">
-        <h1>📢 Рассылка</h1>
-
-        @if (isSent)
-        {
-            <div class="success">@resultMessage</div>
+        .btn:hover {
+            background-color: #6B3E38;
         }
 
-        <form method="post">
-            <div>
-                <label>🌍 Язык:</label>
-                <select name="language">
-                    <option value="английский">🇬🇧 Английский</option>
-                    <option value="китайский">🇨🇳 Китайский</option>
-                    <option value="японский">🇯🇵 Японский</option>
-                    <option value="корейский">🇰🇷 Корейский</option>
-                    <option value="все">🌐 Все</option>
-                </select>
-            </div>
+    .success {
+        background-color: #B1B6B2;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
 
-            <div>
-                <label>💬 Текст:</label>
-                <textarea name="text" rows="5" cols="40"></textarea>
-            </div>
+    a {
+        color: #85544D;
+    }
+</style>
 
-            <button type="submit">🚀 Отправить</button>
-        </form>
-    </div>
+<div class="card">
+    <h1>📢 Рассылка пользователям</h1>
 
-    <a href="/">← Назад</a>
+    @if (isSent)
+    {
+        <div class="success">@resultMessage</div>
+    }
 
-</body>
-</html>
+    <form method="post">
+        <div>
+            <label>🌍 Платформа:</label>
+            <select name="platform">
+                <option value="all">🌐 Все</option>
+                <option value="VK">📱 VK</option>
+                <option value="MAX">📲 MAX</option>
+            </select>
+        </div>
+
+        <div>
+            <label>🌍 Язык:</label>
+            <select name="language">
+                <option value="all">Все языки</option>
+                <option value="английский">🇬🇧 Английский</option>
+                <option value="китайский">🇨🇳 Китайский</option>
+                <option value="японский">🇯🇵 Японский</option>
+                <option value="корейский">🇰🇷 Корейский</option>
+            </select>
+        </div>
+
+        <div>
+            <label>💬 Текст сообщения:</label>
+            <textarea name="text" rows="6" cols="50" placeholder="Введите текст рассылки..."></textarea>
+        </div>
+
+        <button type="submit" class="btn">🚀 Отправить рассылку</button>
+    </form>
+</div>
+
+<div>
+    <a href="/">← Назад к пользователям</a>
+</div>

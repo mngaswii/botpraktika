@@ -9,6 +9,10 @@
       {
         "Path": "botAdmin\\botAdmin.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "botmax\\botmax.csproj",
+        "Action": "StartWithoutDebugging"
       }
     ]
   }

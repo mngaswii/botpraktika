@@ -1,28 +1,11 @@
 ﻿@page
-@using Microsoft.Data.Sqlite
-@using System.IO
+@using TeaBotSimple
 @{
-    string dbPath = @"C:\Users\Professionals\Desktop\Практика\bot\botAdmin\teabot.db";
+    string platform = Request.Query["platform"].ToString();
+    if (string.IsNullOrEmpty(platform)) platform = "all";
 
-    var requests = new List<dynamic>();
-
-    using (var connection = new SqliteConnection($"Data Source={dbPath}"))
-    {
-        connection.Open();
-        var cmd = new SqliteCommand("SELECT Id, VkUserId, RequestText, Status, CreatedAt FROM ManagerRequests ORDER BY CreatedAt DESC", connection);
-        var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            requests.Add(new
-            {
-                Id = reader.GetInt64(0),
-                VkUserId = reader.GetInt64(1),
-                Text = reader.GetString(2),
-                Status = reader.GetString(3),
-                Date = reader.GetDateTime(4)
-            });
-        }
-    }
+    var allRequests = Database.GetRequests();
+    var displayRequests = platform == "all" ? allRequests : allRequests.Where(r => r.Platform == platform).ToList();
 }
 
 <style>
@@ -41,6 +24,7 @@
         border-radius: 12px;
         padding: 20px;
         border: 1px solid #B1B6B2;
+        margin-bottom: 20px;
     }
 
     table {
@@ -70,6 +54,54 @@
         color: #B1B6B2;
     }
 
+    .btn {
+        background-color: #85544D;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .badge-vk {
+        background-color: #4A76A8;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+    }
+
+    .badge-max {
+        background-color: #FF6B35;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        padding: 8px 20px;
+        border-radius: 20px;
+        background-color: #F1C7A7;
+        color: #85544D;
+        text-decoration: none;
+        border: 1px solid #B1B6B2;
+    }
+
+    .tab-active {
+        background-color: #85544D;
+        color: white;
+    }
+
     a {
         color: #85544D;
     }
@@ -78,7 +110,13 @@
 <div class="card">
     <h1>📋 Заявки менеджеру</h1>
 
-    @if (requests.Count == 0)
+    <div class="tabs">
+        <a href="/Requests?platform=all" class="tab @(platform == "all" ? "tab-active" : "")">🌐 Все</a>
+        <a href="/Requests?platform=VK" class="tab @(platform == "VK" ? "tab-active" : "")">📱 VK</a>
+        <a href="/Requests?platform=MAX" class="tab @(platform == "MAX" ? "tab-active" : "")">📲 MAX</a>
+    </div>
+
+    @if (displayRequests.Count == 0)
     {
         <p>✨ Заявок пока нет</p>
     }
@@ -86,17 +124,34 @@
     {
         <table>
             <thead>
-                <tr><th>ID</th><th>VK ID</th><th>Текст</th><th>Статус</th><th>Дата</th></tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Платформа</th>
+                    <th>VK ID</th>
+                    <th>Текст</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
             </thead>
             <tbody>
-                @foreach (var r in requests)
+                @foreach (var r in displayRequests)
                 {
                     <tr>
                         <td>@r.Id</td>
+                        <td>
+                            @if (r.Platform == "MAX")
+                            {
+                                <span class="badge-max">📲 MAX</span>
+                            }
+                            else
+                            {
+                                <span class="badge-vk">📱 VK</span>
+                            }
+                        </td>
                         <td>@r.VkUserId</td>
-                        <td>@r.Text</td>
+                        <td>@r.RequestText</td>
                         <td class="status-@r.Status">@(r.Status == "new" ? "🆕 Новая" : "✅ Закрыта")</td>
-                        <td>@r.Date.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@r.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
                     </tr>
                 }
             </tbody>
@@ -105,5 +160,5 @@
 </div>
 
 <div>
-    <a href="/">← Назад к пользователям</a>
+    <a href="/?platform=@platform">← Назад к пользователям</a>
 </div>

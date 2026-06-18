@@ -11,7 +11,8 @@ namespace TeaBotSimple
 {
     class Program
     {
-        static string TOKEN = "vk1.a.oTmK-e2WnXXVARnONTVUMz7JkJNMTK6DAP20GhHmv_CjIOeEcuNp6MTjesAntB0VT2-QxOhBnsHNxjFY6kua8XljDPY5JlBj-UWdEUgqKNdZMXc0iv2VAqaHJDanWF00qxB6pwxg1pgvaUsMkMA-rPa9RfSxJQlyxMDeSL-cFpNlWEmf6cQ0gNzjSS_8vCYCO3iDcdCxGUX2ZpLe6YSvQw";
+        // ===== НОВЫЙ ТОКЕН =====
+        static string TOKEN = "vk1.a.OJKfI6n69LasJ8Y_AO2dLapZm7TRp-5XdIPw11Rl1sQboMzvEJhXMbLEewSgRV6IhJchygRBgibH2pAFmVezMfFWYfOl2Mcwlvor0FY-lgyqtKjeXDmUNU7YRoufEb52HS5zg83eiaG4pQt_GH4p5iWZjoqLHS9rSNfI1KHflKSA5275S5UYVOmeSoP17O5NkHEUFca5YmlnXn2mhDTcXQ";
         static ulong GROUP_ID = 239436285;
 
         static Dictionary<long, string> userState = new Dictionary<long, string>();
@@ -20,12 +21,11 @@ namespace TeaBotSimple
 
         static void Main(string[] args)
         {
-            // Инициализация базы данных
             Database.Initialize();
 
             VkApi api = new VkApi();
             api.Authorize(new ApiAuthParams { AccessToken = TOKEN });
-            Console.WriteLine("Бот запущен!");
+            Console.WriteLine("🍵 VK Бот TEA запущен!");
 
             var server = api.Groups.GetLongPollServer(GROUP_ID);
             string lastTs = server.Ts.ToString();
@@ -52,15 +52,9 @@ namespace TeaBotSimple
                                     long userId = update.@object.message.peer_id;
                                     string text = (update.@object.message.text ?? "").ToString().ToLower();
 
-                                    // Сохраняем пользователя в БД (создаём запись, если её нет)
-                                    Database.GetOrCreateUser(userId);
-
-                                    // ======== ОБРАБОТКА PAYLOAD ========
                                     if (update.@object.message.payload != null)
                                     {
                                         string payload = update.@object.message.payload.ToString().ToLower();
-                                        Console.WriteLine($"PAYLOAD: {payload}");
-
                                         if (payload.Contains("command"))
                                         {
                                             if (payload.Contains("language")) text = "1";
@@ -68,6 +62,8 @@ namespace TeaBotSimple
                                             else if (payload.Contains("course")) text = "3";
                                             else if (payload.Contains("help")) text = "4";
                                             else if (payload.Contains("sales")) text = "5";
+                                            else if (payload.Contains("schools")) text = "6";
+                                            else if (payload.Contains("start")) text = "start";
                                         }
                                         else if (payload.Contains("answer"))
                                         {
@@ -91,7 +87,9 @@ namespace TeaBotSimple
                                         }
                                     }
 
-                                    Console.WriteLine($"{userId}: {text}");
+                                    Console.WriteLine($"[VK] {userId}: {text}");
+
+                                    Database.GetOrCreateUser(userId, "VK");
 
                                     string answer = GetAnswer(userId, text);
                                     string keyboardType = GetKeyboardType(userId);
@@ -113,7 +111,6 @@ namespace TeaBotSimple
         {
             if (!userState.ContainsKey(userId)) return "menu";
             string state = userState[userId];
-
             if (state == "waiting_language") return "language";
             if (state == "waiting_level") return "level";
             if (state.StartsWith("waiting_test")) return "test";
@@ -123,76 +120,21 @@ namespace TeaBotSimple
         static void SendMessageWithKeyboard(VkApi api, long userId, string message, Random rnd, string keyboardType = "menu")
         {
             string keyboard = "";
-
             if (keyboardType == "test")
             {
-                keyboard = @"
-{
-    ""one_time"": true,
-    ""buttons"": [
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""А"", ""payload"": ""{\""answer\"":\""a\""}"" }, ""color"": ""primary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""Б"", ""payload"": ""{\""answer\"":\""b\""}"" }, ""color"": ""primary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""В"", ""payload"": ""{\""answer\"":\""c\""}"" }, ""color"": ""primary"" }
-        ],
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""Г"", ""payload"": ""{\""answer\"":\""d\""}"" }, ""color"": ""primary"" }
-        ]
-    ]
-}";
+                keyboard = @"{""one_time"":true,""buttons"":[[{""action"":{""type"":""text"",""label"":""А"",""payload"":""{\""answer\"":\""a\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Б"",""payload"":""{\""answer\"":\""b\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""В"",""payload"":""{\""answer\"":\""c\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""Г"",""payload"":""{\""answer\"":\""d\""}""},""color"":""primary""}]]}";
             }
             else if (keyboardType == "language")
             {
-                keyboard = @"
-{
-    ""one_time"": true,
-    ""buttons"": [
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""🇬🇧 Английский"", ""payload"": ""{\""lang\"":\""english\""}"" }, ""color"": ""primary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""🇨🇳 Китайский"", ""payload"": ""{\""lang\"":\""chinese\""}"" }, ""color"": ""primary"" }
-        ],
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""🇯🇵 Японский"", ""payload"": ""{\""lang\"":\""japanese\""}"" }, ""color"": ""primary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""🇰🇷 Корейский"", ""payload"": ""{\""lang\"":\""korean\""}"" }, ""color"": ""primary"" }
-        ]
-    ]
-}";
+                keyboard = @"{""one_time"":true,""buttons"":[[{""action"":{""type"":""text"",""label"":""🇬🇧 Английский"",""payload"":""{\""lang\"":\""english\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""🇨🇳 Китайский"",""payload"":""{\""lang\"":\""chinese\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🇯🇵 Японский"",""payload"":""{\""lang\"":\""japanese\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""🇰🇷 Корейский"",""payload"":""{\""lang\"":\""korean\""}""},""color"":""primary""}]]}";
             }
             else if (keyboardType == "level")
             {
-                keyboard = @"
-{
-    ""one_time"": true,
-    ""buttons"": [
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""Начальный"", ""payload"": ""{\""level\"":\""beginner\""}"" }, ""color"": ""primary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""Средний"", ""payload"": ""{\""level\"":\""intermediate\""}"" }, ""color"": ""primary"" }
-        ],
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""Продвинутый"", ""payload"": ""{\""level\"":\""advanced\""}"" }, ""color"": ""primary"" }
-        ]
-    ]
-}";
+                keyboard = @"{""one_time"":true,""buttons"":[[{""action"":{""type"":""text"",""label"":""Начальный"",""payload"":""{\""level\"":\""beginner\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Средний"",""payload"":""{\""level\"":\""intermediate\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""Продвинутый"",""payload"":""{\""level\"":\""advanced\""}""},""color"":""primary""}]]}";
             }
             else
             {
-                keyboard = @"
-{
-    ""one_time"": false,
-    ""buttons"": [
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""📚 Выбрать язык"", ""payload"": ""{\""command\"":\""language\""}"" }, ""color"": ""primary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""📝 Тест уровня"", ""payload"": ""{\""command\"":\""test\""}"" }, ""color"": ""primary"" }
-        ],
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""🎓 Подобрать обучение"", ""payload"": ""{\""command\"":\""course\""}"" }, ""color"": ""secondary"" },
-            { ""action"": { ""type"": ""text"", ""label"": ""👩‍💼 Позвать человека"", ""payload"": ""{\""command\"":\""help\""}"" }, ""color"": ""secondary"" }
-        ],
-        [
-            { ""action"": { ""type"": ""text"", ""label"": ""🎁 Акции и сертификаты"", ""payload"": ""{\""command\"":\""sales\""}"" }, ""color"": ""positive"" }
-        ]
-    ]
-}";
+                keyboard = @"{""one_time"":false,""buttons"":[[{""action"":{""type"":""text"",""label"":""📚 Выбрать язык"",""payload"":""{\""command\"":\""language\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""📝 Тест уровня"",""payload"":""{\""command\"":\""test\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🎓 Подобрать обучение"",""payload"":""{\""command\"":\""course\""}""},""color"":""secondary""},{""action"":{""type"":""text"",""label"":""👩‍💼 Позвать человека"",""payload"":""{\""command\"":\""help\""}""},""color"":""secondary""}],[{""action"":{""type"":""text"",""label"":""🏫 Наши школы"",""payload"":""{\""command\"":\""schools\""}""},""color"":""positive""}],[{""action"":{""type"":""text"",""label"":""🎁 Акции"",""payload"":""{\""command\"":\""sales\""}""},""color"":""positive""}]]}";
             }
 
             var parameters = new VkParameters
@@ -214,9 +156,21 @@ namespace TeaBotSimple
             }
 
             string state = userState[userId];
-            string answer = "";
 
-            // ======== ПРЯМАЯ ОБРАБОТКА КНОПОК МЕНЮ ========
+            // ======== ПРИВЕТСТВИЕ (НАЧАТЬ) ========
+            if (text == "start" || text == "начать" || text == "привет")
+            {
+                userState[userId] = "menu";
+                return "🍵 Здравствуйте! Добро пожаловать в TEA — школу иностранных языков! 🌍\n\n" +
+                       "Я помогу вам:\n" +
+                       "• Выбрать язык для изучения\n" +
+                       "• Определить ваш уровень\n" +
+                       "• Подобрать обучение\n" +
+                       "• Связаться с менеджером\n\n" +
+                       "👇 Нажмите на кнопку ниже, чтобы начать!";
+            }
+
+            // ======== ПРЯМАЯ ОБРАБОТКА КНОПОК ========
             if (text == "1")
             {
                 userState[userId] = "waiting_language";
@@ -235,34 +189,57 @@ namespace TeaBotSimple
             }
             if (text == "4")
             {
-                // СОХРАНЯЕМ ЗАЯВКУ В БАЗУ
-                Database.AddManagerRequest(userId, text);
+                Database.AddManagerRequest(userId, text, "VK");
                 return "👩‍💼 ЗАЯВКА ПЕРЕДАНА МЕНЕДЖЕРУ\n\nОпишите вопрос. Специалист свяжется с вами.\n\nВремя работы: Пн-Пт 10:00-20:00";
             }
             if (text == "5")
             {
                 return "🎁 АКЦИИ!\n\n🔥 Скидка 20% на первый месяц\n🎫 Подарочные сертификаты\n👥 Приведи друга — месяц бесплатно\n\nНажмите 👩‍💼 Позвать человека для подробностей";
             }
+            if (text == "6" || text == "школы")
+            {
+                return "🏫 НАШИ ШКОЛЫ TEA\n\n" +
+                       "📍 Мы работаем в нескольких городах:\n\n" +
+                       "🏛️ **Москва**\n" +
+                       "   ул. Тверская, д. 15\n" +
+                       "   📞 +7 (495) 123-45-67\n\n" +
+                       "🏛️ **Санкт-Петербург**\n" +
+                       "   Невский проспект, д. 22\n" +
+                       "   📞 +7 (812) 234-56-78\n\n" +
+                       "🏛️ **Казань**\n" +
+                       "   ул. Баумана, д. 10\n" +
+                       "   📞 +7 (843) 345-67-89\n\n" +
+                       "🌐 **Онлайн-школа** — учитесь из любого города!\n\n" +
+                       "Нажмите 👩‍💼 Позвать человека для записи на пробный урок!";
+            }
+
+            // ======== ОБРАБОТКА PAYLOAD ========
+            if (text.Contains("command"))
+            {
+                if (text.Contains("language")) return GetAnswer(userId, "1");
+                if (text.Contains("test")) return GetAnswer(userId, "2");
+                if (text.Contains("course")) return GetAnswer(userId, "3");
+                if (text.Contains("help")) return GetAnswer(userId, "4");
+                if (text.Contains("sales")) return GetAnswer(userId, "5");
+                if (text.Contains("schools")) return GetAnswer(userId, "6");
+            }
 
             // ======== ОБРАБОТКА СОСТОЯНИЙ ========
             if (state == "waiting_language")
             {
                 string lang = "";
-                if (text.Contains("английский")) { lang = "английский"; userLanguage[userId] = "english"; }
-                else if (text.Contains("китайский")) { lang = "китайский"; userLanguage[userId] = "chinese"; }
-                else if (text.Contains("японский")) { lang = "японский"; userLanguage[userId] = "japanese"; }
-                else if (text.Contains("корейский")) { lang = "корейский"; userLanguage[userId] = "korean"; }
+                if (text.Contains("английский")) { lang = "английский"; }
+                else if (text.Contains("китайский")) { lang = "китайский"; }
+                else if (text.Contains("японский")) { lang = "японский"; }
+                else if (text.Contains("корейский")) { lang = "корейский"; }
                 else
                 {
                     return "📚 Пожалуйста, выберите язык из кнопок ниже:";
                 }
 
-                // ===== СОХРАНЯЕМ ЯЗЫК В БАЗУ =====
-                Database.SaveLanguage(userId, lang);
-
-                answer = $"🇬🇧 Отлично! Вы выбрали {lang}.\n\nКакой у вас уровень?\n\nВыберите уровень:";
+                Database.SaveLanguage(userId, lang, "VK");
                 userState[userId] = "waiting_level";
-                return answer;
+                return $"🇬🇧 Отлично! Вы выбрали {lang}.\n\nКакой у вас уровень?\n\nВыберите уровень:";
             }
 
             if (state == "waiting_level")
@@ -273,12 +250,9 @@ namespace TeaBotSimple
                 else if (text == "в" || text == "v" || text == "c") level = "продвинутый";
                 else return "Пожалуйста, выберите уровень из кнопок ниже:";
 
-                // ===== СОХРАНЯЕМ УРОВЕНЬ В БАЗУ =====
-                Database.SaveLevel(userId, level);
-
-                answer = $"✅ Спасибо! {level} уровень сохранён.\n\nЧто дальше?\n• Нажмите 🎓 Подобрать обучение\n• Или 📚 Меню";
+                Database.SaveLevel(userId, level, "VK");
                 userState[userId] = "menu";
-                return answer;
+                return $"✅ Спасибо! {level} уровень сохранён.\n\nЧто дальше?\n• Нажмите 🎓 Подобрать обучение\n• Или 📚 Меню";
             }
 
             // ======== ТЕСТ ========
@@ -322,17 +296,12 @@ namespace TeaBotSimple
 
             if (state == "waiting_selection")
             {
-                answer = "🎓 Спасибо! Мы подобрали для вас обучение.\n\nСпециалист свяжется с вами в ближайшее время.\n\nНажмите 📚 Меню для возврата";
                 userState[userId] = "menu";
-                return answer;
+                return "🎓 Спасибо! Мы подобрали для вас обучение.\n\nСпециалист свяжется с вами в ближайшее время.\n\nНажмите 📚 Меню для возврата";
             }
 
-            return "🍵 Нажмите на кнопку, чтобы выбрать действие:\n\n" +
-                   "📚 Выбрать язык\n" +
-                   "📝 Тест уровня\n" +
-                   "🎓 Подобрать обучение\n" +
-                   "👩‍💼 Позвать человека\n" +
-                   "🎁 Акции и сертификаты";
+            // ======== ГЛАВНОЕ МЕНЮ ========
+            return "🍵 ДОБРО ПОЖАЛОВАТЬ В TEA!\n\n👇 Нажмите на кнопку ниже, чтобы выбрать действие:\n\n📚 Выбрать язык\n📝 Пройти тест уровня\n🎓 Подобрать обучение\n👩‍💼 Позвать человека\n🏫 Наши школы\n🎁 Акции и сертификаты";
         }
     }
 }
