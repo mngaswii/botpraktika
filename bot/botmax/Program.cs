@@ -13,20 +13,152 @@ using TeaBotSimple;
 
 namespace botmax
 {
+    class TestQuestion
+    {
+        public string Text { get; set; }
+        public string[] Options { get; set; }
+        public string CorrectAnswer { get; set; }
+    }
+
     class Program
     {
-        static string TOKEN = "ВАШ_ТОКЕН_ИЗ_MAX";
+        static string TOKEN = "ВАШ_ТОКЕН_ИЗ_MAX"; // ← Замените на реальный токен!
 
-        // Заменено на ConcurrentDictionary для потокобезопасности
         static ConcurrentDictionary<long, string> userState = new ConcurrentDictionary<long, string>();
         static ConcurrentDictionary<long, string> userLanguage = new ConcurrentDictionary<long, string>();
         static ConcurrentDictionary<long, List<string>> testAnswers = new ConcurrentDictionary<long, List<string>>();
+        static ConcurrentDictionary<long, int> testCorrectAnswers = new ConcurrentDictionary<long, int>();
+
+        static Dictionary<string, List<TestQuestion>> languageTests;
+
+        static Program()
+        {
+            languageTests = new Dictionary<string, List<TestQuestion>>();
+
+            // ===== АНГЛИЙСКИЙ =====
+            languageTests["английский"] = new List<TestQuestion>
+            {
+                new TestQuestion {
+                    Text = "Как переводится слово 'Hello'?",
+                    Options = new[] { "Пока", "Привет", "Спасибо", "Пожалуйста" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Вставьте пропущенное слово:\nI ___ a student.",
+                    Options = new[] { "is", "am", "are", "be" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Выберите правильную форму:\nIf I ___ rich, I would travel the world.",
+                    Options = new[] { "am", "was", "were", "would be" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Вставьте фразовый глагол:\nThe meeting was called ___ due to bad weather.",
+                    Options = new[] { "out", "off", "up", "away" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Выберите правильное слово:\nDespite ___ tired, she continued working.",
+                    Options = new[] { "she was", "of being", "being", "to be" },
+                    CorrectAnswer = "в"
+                }
+            };
+
+            // ===== КИТАЙСКИЙ =====
+            languageTests["китайский"] = new List<TestQuestion>
+            {
+                new TestQuestion {
+                    Text = "Что означает '你好' (nǐ hǎo)?",
+                    Options = new[] { "Спасибо", "Привет", "Пока", "Извините" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Что означает '谢谢' (xiè xie)?",
+                    Options = new[] { "Пожалуйста", "Привет", "Спасибо", "Да" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Переведите: '我昨天去了商店'",
+                    Options = new[] { "Я завтра пойду в магазин", "Вчера я ходил в магазин", "Я люблю магазин", "Где магазин?" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Что означает '学习' (xuéxí)?",
+                    Options = new[] { "Работать", "Отдыхать", "Учиться", "Играть" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Что означает конструкция '虽然...但是'?",
+                    Options = new[] { "Если...то", "Хотя...но", "Потому что", "Так что" },
+                    CorrectAnswer = "б"
+                }
+            };
+
+            // ===== ЯПОНСКИЙ =====
+            languageTests["японский"] = new List<TestQuestion>
+            {
+                new TestQuestion {
+                    Text = "Что означает 'こんにちは' (konnichiwa)?",
+                    Options = new[] { "Спасибо", "Привет/Добрый день", "Извините", "Спокойной ночи" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Что означает 'ありがとう' (arigatou)?",
+                    Options = new[] { "Пожалуйста", "Привет", "Спасибо", "Да" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Переведите: '私は学生です' (watashi wa gakusei desu)",
+                    Options = new[] { "Я учитель", "Я студент", "Я работаю", "Я живу здесь" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Что означает '食べる' (taberu)?",
+                    Options = new[] { "Пить", "Спать", "Есть/кушать", "Идти" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Что означает '勉強する' (benkyou suru)?",
+                    Options = new[] { "Работать", "Отдыхать", "Учиться/изучать", "Путешествовать" },
+                    CorrectAnswer = "в"
+                }
+            };
+
+            // ===== КОРЕЙСКИЙ =====
+            languageTests["корейский"] = new List<TestQuestion>
+            {
+                new TestQuestion {
+                    Text = "Что означает '안녕하세요' (annyeonghaseyo)?",
+                    Options = new[] { "Спасибо", "Привет/Здравствуйте", "Извините", "Пока" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Что означает '감사합니다' (gamsahamnida)?",
+                    Options = new[] { "Пожалуйста", "Привет", "Спасибо", "Да" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Переведите: '저는 학생입니다' (jeoneun haksaengimnida)",
+                    Options = new[] { "Я учитель", "Я студент", "Я работаю", "Я живу здесь" },
+                    CorrectAnswer = "б"
+                },
+                new TestQuestion {
+                    Text = "Что означает '먹다' (meoktta)?",
+                    Options = new[] { "Пить", "Спать", "Есть/кушать", "Идти" },
+                    CorrectAnswer = "в"
+                },
+                new TestQuestion {
+                    Text = "Что означает '공부하다' (gongbuhada)?",
+                    Options = new[] { "Работать", "Отдыхать", "Учиться/изучать", "Путешествовать" },
+                    CorrectAnswer = "в"
+                }
+            };
+        }
 
         static async Task Main(string[] args)
         {
-            // ===== ИНИЦИАЛИЗАЦИЯ SQLITE =====
             Batteries_V2.Init();
-
             Database.Initialize();
             Log("🍵 MAX Бот TEA запускается...");
 
@@ -66,9 +198,23 @@ namespace botmax
                                           msgData["text"]?.Value<string>() ?? "";
                             text = text.ToLower();
 
+                            // Получаем payload
+                            string payload = msgData["Payload"]?.Value<string>() ??
+                                            msgData["payload"]?.Value<string>() ?? "";
+
                             if (userId == 0) return;
 
                             Log($"[MAX] {userId}: {text}");
+                            if (!string.IsNullOrEmpty(payload))
+                            {
+                                Log($"  Payload: {payload}");
+                            }
+
+                            // Парсим payload
+                            if (!string.IsNullOrEmpty(payload))
+                            {
+                                text = ParsePayload(payload, text);
+                            }
 
                             Database.GetOrCreateUser(userId, "MAX");
 
@@ -81,7 +227,6 @@ namespace botmax
                     catch (Exception ex)
                     {
                         LogError($"Ошибка обработки сообщения: {ex.Message}");
-                        LogError($"   {ex.StackTrace}");
                     }
                 },
                 limit: 100,
@@ -104,10 +249,63 @@ namespace botmax
         }
         #endregion
 
+        #region Парсинг payload
+        static string ParsePayload(string payload, string originalText)
+        {
+            try
+            {
+                JObject json = JObject.Parse(payload);
+
+                if (json["command"] != null)
+                {
+                    string command = json["command"].ToString().ToLower();
+                    if (command == "language") return "1";
+                    else if (command == "test") return "2";
+                    else if (command == "course") return "3";
+                    else if (command == "help") return "4";
+                    else if (command == "sales") return "5";
+                    else if (command == "schools") return "6";
+                    else if (command == "start") return "start";
+                    else if (command == "menu") return "меню";
+                }
+                else if (json["answer"] != null)
+                {
+                    string answer = json["answer"].ToString().ToLower();
+                    if (answer == "a") return "а";
+                    else if (answer == "b") return "б";
+                    else if (answer == "c") return "в";
+                    else if (answer == "d") return "г";
+                }
+                else if (json["lang"] != null)
+                {
+                    string lang = json["lang"].ToString().ToLower();
+                    if (lang == "english") return "английский";
+                    else if (lang == "chinese") return "китайский";
+                    else if (lang == "japanese") return "японский";
+                    else if (lang == "korean") return "корейский";
+                }
+                else if (json["level"] != null)
+                {
+                    string level = json["level"].ToString().ToLower();
+                    if (level == "beginner") return "а";
+                    else if (level == "intermediate") return "б";
+                    else if (level == "advanced") return "в";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"Ошибка парсинга payload: {ex.Message}");
+            }
+
+            return originalText;
+        }
+        #endregion
+
         static string GetKeyboardType(long userId)
         {
             if (!userState.TryGetValue(userId, out string state)) return "menu";
             if (state == "waiting_language") return "language";
+            if (state == "waiting_test_language") return "language";
             if (state == "waiting_level") return "level";
             if (state.StartsWith("waiting_test")) return "test";
             return "menu";
@@ -147,85 +345,120 @@ namespace botmax
             switch (type)
             {
                 case "test":
-                    return @"{""one_time"":true,""buttons"":[[{""action"":{""type"":""text"",""label"":""А"",""payload"":""{\""answer\"":\""a\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Б"",""payload"":""{\""answer\"":\""b\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""В"",""payload"":""{\""answer\"":\""c\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""Г"",""payload"":""{\""answer\"":\""d\""}""},""color"":""primary""}]]}";
+                    return @"{""one_time"":false,""buttons"":[[{""action"":{""type"":""text"",""label"":""А"",""payload"":""{\""answer\"":\""a\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Б"",""payload"":""{\""answer\"":\""b\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""В"",""payload"":""{\""answer\"":\""c\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Г"",""payload"":""{\""answer\"":\""d\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🏠 Главное меню"",""payload"":""{\""command\"":\""menu\""}""},""color"":""negative""}]]}";
 
                 case "language":
-                    return @"{""one_time"":true,""buttons"":[[{""action"":{""type"":""text"",""label"":""🇬🇧 Английский"",""payload"":""{\""lang\"":\""english\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""🇨🇳 Китайский"",""payload"":""{\""lang\"":\""chinese\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🇯🇵 Японский"",""payload"":""{\""lang\"":\""japanese\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""🇰🇷 Корейский"",""payload"":""{\""lang\"":\""korean\""}""},""color"":""primary""}]]}";
+                    return @"{""one_time"":false,""buttons"":[[{""action"":{""type"":""text"",""label"":""🇬🇧 Английский"",""payload"":""{\""lang\"":\""english\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""🇨🇳 Китайский"",""payload"":""{\""lang\"":\""chinese\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🇯 Японский"",""payload"":""{\""lang\"":\""japanese\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""🇰🇷 Корейский"",""payload"":""{\""lang\"":\""korean\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🏠 Главное меню"",""payload"":""{\""command\"":\""menu\""}""},""color"":""negative""}]]}";
 
                 case "level":
-                    return @"{""one_time"":true,""buttons"":[[{""action"":{""type"":""text"",""label"":""Начальный"",""payload"":""{\""level\"":\""beginner\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Средний"",""payload"":""{\""level\"":\""intermediate\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""Продвинутый"",""payload"":""{\""level\"":\""advanced\""}""},""color"":""primary""}]]}";
+                    return @"{""one_time"":false,""buttons"":[[{""action"":{""type"":""text"",""label"":""Начальный"",""payload"":""{\""level\"":\""beginner\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""Средний"",""payload"":""{\""level\"":\""intermediate\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""Продвинутый"",""payload"":""{\""level\"":\""advanced\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🏠 Главное меню"",""payload"":""{\""command\"":\""menu\""}""},""color"":""negative""}]]}";
 
                 default: // menu
-                    return @"{""one_time"":false,""buttons"":[[{""action"":{""type"":""text"",""label"":""📚 Выбрать язык"",""payload"":""{\""command\"":\""language\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""📝 Тест уровня"",""payload"":""{\""command\"":\""test\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🎓 Подобрать обучение"",""payload"":""{\""command\"":\""course\""}""},""color"":""secondary""},{""action"":{""type"":""text"",""label"":""👩‍💼 Позвать человека"",""payload"":""{\""command\"":\""help\""}""},""color"":""secondary""}],[{""action"":{""type"":""text"",""label"":""🎁 Акции и сертификаты"",""payload"":""{\""command\"":\""sales\""}""},""color"":""positive""}]]}";
+                    return @"{""one_time"":false,""buttons"":[[{""action"":{""type"":""text"",""label"":""📚 Выбрать язык"",""payload"":""{\""command\"":\""language\""}""},""color"":""primary""},{""action"":{""type"":""text"",""label"":""📝 Тест уровня"",""payload"":""{\""command\"":\""test\""}""},""color"":""primary""}],[{""action"":{""type"":""text"",""label"":""🎓 Подобрать обучение"",""payload"":""{\""command\"":\""course\""}""},""color"":""secondary""},{""action"":{""type"":""text"",""label"":""👩‍💼 Позвать человека"",""payload"":""{\""command\"":\""help\""}""},""color"":""secondary""}],[{""action"":{""type"":""text"",""label"":""🏫 Наши школы"",""payload"":""{\""command\"":\""schools\""}""},""color"":""positive""}],[{""action"":{""type"":""text"",""label"":""🎁 Акции"",""payload"":""{\""command\"":\""sales\""}""},""color"":""positive""}]]}";
             }
         }
         #endregion
 
+        static string FormatQuestion(TestQuestion question, int num, int total)
+        {
+            return $"Вопрос {num} из {total} (Уровень {GetLevelByNumber(num)}):\n\n" +
+                   $"{question.Text}\n\n" +
+                   $"А) {question.Options[0]}\n" +
+                   $"Б) {question.Options[1]}\n" +
+                   $"В) {question.Options[2]}\n" +
+                   $"Г) {question.Options[3]}\n\n" +
+                   $"Выберите ответ:";
+        }
+
+        static string GetLevelByNumber(int num)
+        {
+            string[] levels = { "A1", "A2", "B1", "B2", "C1" };
+            return num <= levels.Length ? levels[num - 1] : "A1";
+        }
+
         static string GetAnswer(long userId, string text)
         {
-            // Инициализация состояния через TryGetValue для потокобезопасности
             if (!userState.ContainsKey(userId))
             {
                 userState.TryAdd(userId, "menu");
                 testAnswers.TryAdd(userId, new List<string>());
+                testCorrectAnswers.TryAdd(userId, 0);
             }
 
             string state = userState[userId];
 
-            // Обработка команд меню
-            if (text == "1" || text.Contains("language"))
+            // ======== ГЛАВНОЕ МЕНЮ ========
+            if (text == "меню" || text == "главное меню" || text == "отмена" || text == "выход")
+            {
+                testAnswers.TryRemove(userId, out _);
+                testCorrectAnswers.TryRemove(userId, out _);
+                userState[userId] = "menu";
+                return "🏠 Вы вернулись в главное меню!\n\n👇 Выберите действие:";
+            }
+
+            // ======== ПРИВЕТСТВИЕ ========
+            if (text == "start" || text == "начать" || text == "привет")
+            {
+                userState[userId] = "menu";
+                return "🍵 Здравствуйте! Добро пожаловать в TEA — школу иностранных языков! 🌍\n\n" +
+                       "Я помогу вам:\n" +
+                       "• Выбрать язык для изучения\n" +
+                       "• Определить ваш уровень\n" +
+                       "• Подобрать обучение\n" +
+                       "• Связаться с менеджером\n\n" +
+                       "👇 Нажмите на кнопку ниже, чтобы начать!";
+            }
+
+            // ======== КОМАНДЫ МЕНЮ ========
+            if (text == "1")
             {
                 userState[userId] = "waiting_language";
                 return "📚 ВЫБЕРИТЕ ЯЗЫК:\n\nНажмите на кнопку ниже:";
             }
-            if (text == "2" || text.Contains("test"))
+
+            if (text == "2")
             {
-                userState[userId] = "waiting_test_question1";
-                testAnswers[userId] = new List<string>();
-                return "📝 ТЕСТ УРОВНЯ ЯЗЫКА\n\nВопрос 1 из 5:\n\nКак давно вы изучаете язык?\n\nА) Меньше года\nБ) 1-3 года\nВ) Более 3 лет\n\nВыберите ответ:";
+                if (!userLanguage.ContainsKey(userId) || string.IsNullOrEmpty(userLanguage[userId]))
+                {
+                    userState[userId] = "waiting_test_language";
+                    return "📝 ТЕСТ УРОВНЯ ЯЗЫКА\n\nСначала выберите язык для тестирования:\n\nНажмите на кнопку ниже:";
+                }
+                else
+                {
+                    string lang = userLanguage[userId];
+                    testAnswers[userId] = new List<string>();
+                    testCorrectAnswers[userId] = 0;
+                    userState[userId] = "waiting_test_q1";
+
+                    var questions = languageTests[lang];
+                    return $"📝 ТЕСТ УРОВНЯ ({lang.ToUpper()})\n\n{FormatQuestion(questions[0], 1, 5)}";
+                }
             }
-            if (text == "3" || text.Contains("course"))
+
+            if (text == "3")
             {
                 userState[userId] = "waiting_selection";
                 return "🎓 ПОДБОР ОБУЧЕНИЯ\n\nОтветьте на вопросы:\n1. Ваш возраст?\n2. Цель изучения?\n3. Удобное время?\n\nНапишите через запятую, например: 25, работа, вечер";
             }
-            if (text == "4" || text.Contains("help"))
+
+            if (text == "4")
             {
                 Database.AddManagerRequest(userId, text, "MAX");
                 return "👩‍💼 ЗАЯВКА ПЕРЕДАНА МЕНЕДЖЕРУ\n\nОпишите вопрос. Специалист свяжется с вами.\n\nВремя работы: Пн-Пт 10:00-20:00";
             }
-            if (text == "5" || text.Contains("sales"))
+
+            if (text == "5")
             {
                 return "🎁 АКЦИИ!\n\n🔥 Скидка 20% на первый месяц\n🎫 Подарочные сертификаты\n👥 Приведи друга — месяц бесплатно\n\nНажмите 👩‍💼 Позвать человека для подробностей";
             }
 
-            // Парсинг payload от кнопок
-            string originalText = text;
-            if (text.Contains("lang"))
+            if (text == "6" || text == "школы")
             {
-                if (text.Contains("english")) text = "английский";
-                else if (text.Contains("chinese")) text = "китайский";
-                else if (text.Contains("japanese")) text = "японский";
-                else if (text.Contains("korean")) text = "корейский";
+                return "🏫 НАШИ ШКОЛЫ TEA\n\n🌐 **Онлайн-школа** — учитесь из любого города!\n\nНажмите 👩‍💼 Позвать человека для записи на пробный урок!";
             }
 
-            if (text.Contains("level"))
-            {
-                if (text.Contains("beginner")) text = "а";
-                else if (text.Contains("intermediate")) text = "б";
-                else if (text.Contains("advanced")) text = "в";
-            }
-
-            if (text.Contains("answer"))
-            {
-                if (text.Contains("a")) text = "а";
-                else if (text.Contains("b")) text = "б";
-                else if (text.Contains("c")) text = "в";
-                else if (text.Contains("d")) text = "г";
-            }
-
-            // Обработка состояний
-            if (state == "waiting_language")
+            // ======== ВЫБОР ЯЗЫКА ========
+            if (state == "waiting_language" || state == "waiting_test_language")
             {
                 string lang = "";
                 if (text.Contains("английский")) lang = "английский";
@@ -239,8 +472,21 @@ namespace botmax
 
                 Database.SaveLanguage(userId, lang, "MAX");
                 userLanguage[userId] = lang;
-                userState[userId] = "waiting_level";
-                return $"🇬🇧 Отлично! Вы выбрали {lang}.\n\nКакой у вас уровень?\n\nВыберите уровень:";
+
+                if (state == "waiting_test_language")
+                {
+                    testAnswers[userId] = new List<string>();
+                    testCorrectAnswers[userId] = 0;
+                    userState[userId] = "waiting_test_q1";
+
+                    var questions = languageTests[lang];
+                    return $"📝 ТЕСТ УРОВНЯ ({lang.ToUpper()})\n\n{FormatQuestion(questions[0], 1, 5)}";
+                }
+                else
+                {
+                    userState[userId] = "waiting_level";
+                    return $"🇬🇧 Отлично! Вы выбрали {lang}.\n\nКакой у вас уровень?\n\nВыберите уровень:";
+                }
             }
 
             if (state == "waiting_level")
@@ -256,10 +502,10 @@ namespace botmax
                 return $"✅ Спасибо! {level} уровень сохранён.\n\nЧто дальше?\n• Нажмите 🎓 Подобрать обучение\n• Или 📚 Меню";
             }
 
-            // Обработка теста
-            if (state.StartsWith("waiting_test"))
+            // ======== ТЕСТ ЯЗЫКА ========
+            if (state.StartsWith("waiting_test_q"))
             {
-                return HandleTestState(userId, state, text);
+                return HandleLanguageTest(userId, state, text);
             }
 
             if (state == "waiting_selection")
@@ -268,60 +514,89 @@ namespace botmax
                 return "🎓 Спасибо! Мы подобрали для вас обучение.\n\nСпециалист свяжется с вами в ближайшее время.\n\nНажмите 📚 Меню для возврата";
             }
 
-            // Главное меню
-            return "🍵 ДОБРО ПОЖАЛОВАТЬ В TEA!\n\n👇 Нажмите на кнопку ниже, чтобы выбрать действие:\n\n📚 Выбрать язык\n📝 Пройти тест уровня\n🎓 Подобрать обучение\n👩‍💼 Позвать человека\n🎁 Акции и сертификаты";
+            // ======== ГЛАВНОЕ МЕНЮ ========
+            return "🍵 ДОБРО ПОЖАЛОВАТЬ В TEA!\n\n👇 Нажмите на кнопку ниже, чтобы выбрать действие:\n\n📚 Выбрать язык\n📝 Пройти тест уровня\n🎓 Подобрать обучение\n👩‍💼 Позвать человека\n🏫 Наши школы\n🎁 Акции и сертификаты";
         }
 
-        #region Обработка теста
-        static string HandleTestState(long userId, string state, string text)
+        #region Тест языка
+        static string HandleLanguageTest(long userId, string state, string text)
         {
             if (!testAnswers.ContainsKey(userId))
             {
                 testAnswers.TryAdd(userId, new List<string>());
             }
+            if (!testCorrectAnswers.ContainsKey(userId))
+            {
+                testCorrectAnswers.TryAdd(userId, 0);
+            }
 
-            if (state == "waiting_test_question1")
-            {
-                testAnswers[userId].Add(text);
-                userState[userId] = "waiting_test_question2";
-                return "📝 Вопрос 2 из 5:\n\nКакая у вас цель изучения языка?\n\nА) Работа\nБ) Путешествия\nВ) Экзамен\nГ) Для себя\n\nВыберите ответ:";
-            }
-            if (state == "waiting_test_question2")
-            {
-                testAnswers[userId].Add(text);
-                userState[userId] = "waiting_test_question3";
-                return "📝 Вопрос 3 из 5:\n\nСколько часов в неделю готовы заниматься?\n\nА) 1-2\nБ) 3-4\nВ) 5-6\nГ) Более 6\n\nВыберите ответ:";
-            }
-            if (state == "waiting_test_question3")
-            {
-                testAnswers[userId].Add(text);
-                userState[userId] = "waiting_test_question4";
-                return "📝 Вопрос 4 из 5:\n\nКакой формат удобнее?\n\nА) Групповой\nБ) Индивидуальный\nВ) Самостоятельно\nГ) Смешанный\n\nВыберите ответ:";
-            }
-            if (state == "waiting_test_question4")
-            {
-                testAnswers[userId].Add(text);
-                userState[userId] = "waiting_test_question5";
-                return "📝 Вопрос 5 из 5:\n\nКакой бюджет в месяц?\n\nА) До 3000₽\nБ) 3000-6000₽\nВ) 6000-10000₽\nГ) Более 10000₽\n\nВыберите ответ:";
-            }
-            if (state == "waiting_test_question5")
-            {
-                testAnswers[userId].Add(text);
+            int questionNum = int.Parse(state.Replace("waiting_test_q", ""));
+            string lang = userLanguage[userId];
+            var questions = languageTests[lang];
 
-                int score = 0;
-                foreach (var ans in testAnswers[userId])
+            string userAnswer = text;
+            string correctAnswer = questions[questionNum - 1].CorrectAnswer;
+
+            testAnswers[userId].Add(userAnswer);
+
+            if (userAnswer == correctAnswer)
+            {
+                testCorrectAnswers[userId]++;
+            }
+
+            if (questionNum < 5)
+            {
+                int nextQuestionNum = questionNum + 1;
+                userState[userId] = $"waiting_test_q{nextQuestionNum}";
+
+                var nextQuestion = questions[nextQuestionNum - 1];
+                return FormatQuestion(nextQuestion, nextQuestionNum, 5);
+            }
+            else
+            {
+                int correctCount = testCorrectAnswers[userId];
+
+                string level = "";
+                string recommendation = "";
+
+                if (correctCount <= 1)
                 {
-                    if (ans == "а" || ans == "a") score++;
+                    level = "A1 (Начальный)";
+                    recommendation = "Рекомендуем базовый курс для начинающих";
+                }
+                else if (correctCount == 2)
+                {
+                    level = "A2 (Элементарный)";
+                    recommendation = "Рекомендуем курс для продолжающих начинающих";
+                }
+                else if (correctCount == 3)
+                {
+                    level = "B1 (Средний)";
+                    recommendation = "Рекомендуем стандартный курс среднего уровня";
+                }
+                else if (correctCount == 4)
+                {
+                    level = "B2 (Выше среднего)";
+                    recommendation = "Рекомендуем интенсивный курс продвинутого уровня";
+                }
+                else
+                {
+                    level = "C1 (Продвинутый)";
+                    recommendation = "Рекомендуем курс для продвинутых студентов";
                 }
 
-                // Очистка временных данных для предотвращения утечки памяти
                 testAnswers.TryRemove(userId, out _);
+                testCorrectAnswers.TryRemove(userId, out _);
                 userState[userId] = "menu";
 
-                return $"🎉 ТЕСТ ЗАВЕРШЁН! 🎉\n\n⭐ Ваш результат: {score} из 5\n⭐ Рекомендация: групповые занятия 2 раза в неделю\n⭐ Уровень: средний (B1)\n⭐ Следующий шаг: пробный урок бесплатно\n\nНажмите 👩‍💼 Позвать человека для записи";
+                return $"🎉 ТЕСТ ЗАВЕРШЁН! 🎉\n\n" +
+                       $"🌐 Язык: {lang}\n" +
+                       $"✅ Правильных ответов: {correctCount} из 5\n" +
+                       $"📊 Ваш уровень: {level}\n" +
+                       $"💡 {recommendation}\n\n" +
+                       $"⭐ Следующий шаг: пробный урок бесплатно\n\n" +
+                       $"Нажмите 👩‍💼 Позвать человека для записи";
             }
-
-            return "Произошла ошибка. Нажмите 📚 Меню для возврата.";
         }
         #endregion
     }
